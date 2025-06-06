@@ -1,30 +1,37 @@
 # S3静的ウェブサイトIaC
 
 ## 概要
-TerraformでAWS S3バケットを作成し、静的ウェブサイトホスティングを設定するサンプルプロジェクトです。
+Terraformを使い、AWS S3バケットを**新方式（aws_s3_bucket_website_configuration）**で静的ウェブサイトホスティング＆パブリック公開まで全自動化したサンプルプロジェクトです。
+
+---
 
 ```
 ## ディレクトリ構成
+
 aws-s3-static-site/
-├── environments/                        # 環境ごとの設定を格納（dev, prodなど分けられる）
-│   └── dev/                             # 今回はdev環境のみ
-│       ├── backend.tf                   # Terraform state（状態管理ファイル）をS3バケットで管理する設定
-│       ├── main.tf                      # 環境ごとに使うモジュール（例：S3）を呼び出すメイン定義ファイル
-│       ├── outputs.tf                   # apply後に出力したい値（例：バケット名など）を定義
-│       └── variables.tf                 # main.tfで使う変数があれば定義（今回は空でもOK）
-├── modules/                             # 再利用可能なモジュール群（今回はS3静的サイト専用）
-│   └── s3_static_site/
-│       ├── main.tf                      # S3バケット（静的Webサイト用）を作成するリソース定義
-│       ├── outputs.tf                   # モジュールから出力したい値（例：バケット名）を定義
-│       └── variables.tf                 # モジュール内で使う変数（例：バケット名）を定義
-├── site/                                # 静的Webサイトの実ファイル置き場（バケットにアップする中身）
-│   ├── index.html                       # メインページ（手動でS3バケットにアップ）
-│   └── error.html                       # エラーページ（手動でS3バケットにアップ）
+├── environments/ # 環境ごとの設定を格納（dev, prodなど分けられる）
+│ └── dev/
+│ ├── backend.tf # Terraform state（状態管理ファイル）をS3バケットで管理する設定
+│ ├── main.tf # モジュール呼び出し・環境ごとメイン定義
+│ ├── outputs.tf # apply後に出力したい値（バケット名/エンドポイントなど）を定義
+│ └── variables.tf # main.tfで使う変数（今回は空でもOK）
+├── modules/ # 再利用可能なモジュール群
+│ └── s3_static_site/
+│ ├── main.tf # S3・公開設定・ポリシー等をIaCで全管理
+│ ├── outputs.tf # website_endpoint等の出力定義
+│ └── variables.tf # バケット名などの変数定義
+├── site/ # 静的Webサイト本体（バケットにアップする中身）
+│ ├── index.html # メインページ（アップロードして公開）
+│ └── error.html # エラーページ（アップロードして公開）
 ├── .github/
-│   └── workflows/
-│       └── terraform.yml                # GitHub Actions用のワークフローファイル（CI/CD自動化例）
-├── .gitignore                           # Git管理対象から除外するファイル/ディレクトリ一覧
-└── README.md                            # プロジェクトの説明、構成、実行手順などをまとめたドキュメント
+│ └── workflows/
+│ └── terraform.yml # CI/CD自動化用（例）
+├── .gitignore # Git除外ファイル
+└── README.md # このファイル
+
+yaml
+コピーする
+編集する
 
 ---
 ```
@@ -34,7 +41,7 @@ aws-s3-static-site/
 ```bash
 cd environments/dev
 terraform init
-terraform validate   # (オプション・構文チェック)
+terraform validate   # (推奨・構文チェック)
 terraform plan
 terraform apply
 破棄（コスト削減のため忘れずに！）
@@ -43,10 +50,25 @@ bash
 コピーする
 編集する
 terraform destroy
-Backend
-stateファイルはS3バケット（yoshitaka-terraform-state-bucket）で一元管理
+バックエンド（状態管理）
+Terraform stateファイルは、yoshitaka-terraform-state-bucket（S3）で一元管理
 
-静的Webサイトのサンプル中身
+静的Webサイト公開の流れ
+site/配下に index.html, error.html を作成
+
+terraform applyでS3バケット・パブリックアクセス・バケットポリシー・Webサイト設定まで全自動化
+
+静的ファイルはAWS CLIやコンソールでバケットにアップロード
+
+bash
+コピーする
+編集する
+aws s3 cp site/index.html s3://[バケット名]/index.html
+aws s3 cp site/error.html s3://[バケット名]/error.html
+terraform outputでエンドポイントURLが表示される
+　→ ブラウザでアクセスして公開状態を確認
+
+サンプルHTML
 site/index.html
 html
 コピーする
@@ -81,6 +103,11 @@ html
 </body>
 </html>
 補足
-静的ファイル（index.html, error.html）はsite/ディレクトリで管理し、AWS CLIやコンソールからS3バケットへ手動アップロード
+バケットのパブリック公開/バケットポリシー/アクセスブロック解除もIaCで全自動
 
+<<<<<<< HEAD
 Terraformの状態管理（tfstate）はS3 backendで一元化
+=======
+状態管理もS3 backendで堅牢化
+
+terraform outputでウェブサイトエンドポイントURLも即確認可能
