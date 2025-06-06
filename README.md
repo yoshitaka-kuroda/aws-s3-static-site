@@ -1,7 +1,7 @@
 # S3静的ウェブサイトIaC
 
 ## 概要
-Terraformを使い、AWS S3バケットを**新方式（aws_s3_bucket_website_configuration）**で静的ウェブサイトホスティング＆パブリック公開まで全自動化したサンプルプロジェクトです。
+Terraformを使い、AWS S3バケットを静的ウェブサイトホスティング＆パブリック公開サンプルプロジェクト
 
 ---
 
@@ -103,11 +103,11 @@ html
 </body>
 </html>
 補足
-バケットのパブリック公開/バケットポリシー/アクセスブロック解除もIaCで全自動
+バケットのパブリック公開/バケットポリシー/アクセスブロック解除もIaC
 
 <<<<<<< HEAD
 Terraformの状態管理（tfstate）はS3 backendで一元化
 =======
 状態管理もS3 backendで堅牢化
 
-terraform outputでウェブサイトエンドポイントURLも即確認可能
+terraform outputでウェブサイトエンドポイントURL確認可能
